@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>webpackの使い方からコンパイルまで（全2回）前編</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <style type="text/css">
+      @import url(https://fonts.googleapis.com/css?family=Yanone+Kaffeesatz);
+      @import url(https://fonts.googleapis.com/css?family=Droid+Serif:400,700,400italic);
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+
+      body {
+        font-family: 'Droid Serif', 'YuGothic', 'Arial', serif;
+      }
+      h1, h2, h3, h4 {
+        font-weight: normal;
+        color: #c18100;
+        line-height: 1.2;
+      }
+      a,
+      a:link,
+      a:visited {
+        color: #825700;
+      }
+      li {
+        margin-top: 5px;
+      }
+      li:first-child {
+        margin-top: 0;
+      }
+      ul ul {
+        margin-top: 5px;
+      }
+      .remark-code, .remark-inline-code { font-family: 'Ubuntu Mono'; }
+      .big {
+        font-size: 150px;
+      }
+      code.text {
+        white-space: normal;
+      }
+      pre {
+        padding: 1em;
+        background-color: #eee;
+      }
+      table {
+        width: 100%;
+      }
+      th {
+        padding: 0.5em;
+        background-color: #ffdbb6;
+      }
+      td {
+        padding: 0.5em;
+        background-color: #fff7e7;
+      }
+      tr {
+        background-color: #eee;
+      }
+      blockquote {
+        display: inline-block;
+        padding: 0 1em;
+        margin-left: 0;
+        background: #eee;
+        border-left: 5px solid #4c3300;
+      }
+      .w100 img {
+        width: 100%;
+      }
+      .del {
+        text-decoration: line-through;
+      }
+      .remark-slide-scaler {
+        overflow: scroll;
+      }
+      .remark-slide-number {
+
+      }
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+
+      class: center, middle
+
+      # webpackの使い方
+      ## （前編）
+
+      2018/01/16
+
+      Kobayashi Kazuhiro (kzhrk)
+
+
+      ---
+
+      ## 本日のテーマ
+
+      - webpackとは何か
+      - webpackの設定ファイル/実行
+      - webpackのメリット
+      - 課題
+
+      ---
+      class: center, middle
+
+      # webpackとは何か
+
+      ---
+
+      ## 静的なモジュールバンドラー
+
+      webpackはJavaScript Applicationのための静的なモジュールバンドラー
+
+      > [Concepts](https://webpack.js.org/concepts/)より引用<br>
+      > webpack is a static module bundler for modern JavaScript applications.
+
+      ---
+      class: center, middle
+
+      # 🤔🤔🤔
+
+      ---
+
+      ## モジュールバンドラー
+
+      複数のモジュールをひとつもしくは複数のファイルにまとめるツール
+
+      モジュール毎の依存関係を解決し、ひとつもしくは複数のバンドルをビルドする
+
+      ---
+
+      ## その他のモジュールバンドラー
+
+      - [r.js](http://requirejs.org/docs/optimization.html)
+      - [browserify](http://browserify.org/)
+      - [fusebox](https://fuse-box.org/)
+      - [rollup](https://rollupjs.org/)
+
+      ---
+      class: center, middle
+
+      # なぜwebpackなのか
+
+      ---
+
+      ## Googleトレンド
+
+      - [r.js, browserify js, fusebox js, rollup js, webpack js](https://trends.google.co.jp/trends/explore?q=r.js,browserify%20js,fusebox%20js,rollup%20js,webpack%20js)
+
+      ## GitHub
+
+      - [browserify: 6,156](https://github.com/search?utf8=%E2%9C%93&q=browserify)
+      - [rollup: 1,830](https://github.com/search?utf8=%E2%9C%93&q=rollup&type=)
+      - [webpack: 61,886](https://github.com/search?utf8=%E2%9C%93&q=webpack)
+
+      ---
+      class: center, middle
+
+      # 💪💪💪集合知は正義💪💪💪
+
+      ---
+      class: center, middle
+
+      # 話は変わって
+      # 実案件で使われるwebpack
+
+      ---
+
+      ## webpack-stream
+
+      webpackをstreamとしてgulp上で実行するためのツール
+
+      webpack-stream@3はwebpack@2に対応
+
+      [webpack-stream@4からwebpack@3に対応](https://github.com/shama/webpack-stream#release-history)
+
+      ---
+
+      ## webpack-streamの内部で<br>実行されていること
+
+      1. webpackを読み込んで<br>https://github.com/shama/webpack-stream/blob/master/index.js#L69
+
+      2. 実行しているだけ<br>https://github.com/shama/webpack-stream/blob/master/index.js#L132
+
+      ---
+
+      ## webpack-streamのメリット
+
+      .pipeで他のgulp pluginの処理を追加することができる
+
+      gulp-strip-debugなど
+
+      ---
+      class: center, middle
+
+      # でもそれwebpackの<br>optimizeで出来るよ
+
+      ---
+
+      ## UglifyjsWebpackPlugin
+
+      ```
+      new webpack.optimize.UglifyJsPlugin({
+        compress:{
+          warnings: false,
+          drop_debugger: true,
+          drop_console: true
+        }
+      })
+      ```
+
+      https://webpack.js.org/plugins/uglifyjs-webpack-plugin/
+      https://github.com/mishoo/UglifyJS2/tree/harmony#compress-options
+
+      ---
+      class: center, middle
+
+      # webpackコマンドでビルド
+
+      ---
+
+      ## webpack-cliの確認/インストール
+
+      ```
+      $ webpack -v
+      $
+      $ # 何も表示されなかったら
+      $ npm i -g webpack-cli
+      ```
+
+      ---
+
+      ## package.json
+
+      ```
+      $ npm init -y
+      $ npm i -D webpack
+      ```
+
+      ---
+
+      ## webpack.config.js
+
+      ```:js
+      const path = require('path');
+
+      module.exports = {
+        entry: {
+          main: './src/js/main.js'
+        },
+        output: {
+          filename: '[name].bundle.js',
+          path: path.resolve(__dirname, './public/js')
+        }
+      };
+      ```
+
+      ---
+
+      ## src/js/main.js
+
+      ```:js
+      import add from './modules/add';
+
+      console.log(add(1, 2));
+      ```
+
+      ---
+
+      ## src/js/modules/add.js
+
+      ```:js
+      export default function (a, b) {
+        return a + b;
+      };
+      ```
+
+      ---
+
+      ## ビルド&実行
+
+      ```
+      $ webpack -w
+      $ node public/js/main.bundle.js
+      ```
+
+      ---
+      class: center, middle
+
+      # webpackのメリット
+
+      ---
+
+      ## モジュールバンドラーのメリット
+
+      - 可読性の向上
+      - 作業分担
+      - モジュールの保守性が高まる
+      - モジュールの再利用性が高まる
+      - 依存関係（読み込み順番）が複雑にならない
+
+      ---
+
+      ## 可読性の向上
+
+      ファイルが機能毎に細分化されるのでJSの可読性が上がる。
+
+      ファイル名やモジュール名でJSの機能が明示的になる。
+
+      ---
+
+      ## 作業分担
+
+      モジュール毎に開発作業を分担できる。
+
+      修正が入った場合も、各自の担当モジュールの修正作業に抑えられる。
+
+      ---
+
+      ## モジュールの保守性が高まる
+
+      モジュールは他のコードとの依存性が少なくある（疎結合）べきなので、しっかり設計をすれば変更や拡張がしやすくなる。
+
+      モジュールが疎結合であれば、単体テストが書きやすくなる。
+
+      ---
+
+      ## モジュールの再利用性が高まる
+
+      疎結合な設計をしたモジュールは他のプロジェクトでの再利用が可能になり、開発コストが抑えられる。
+
+      ---
+
+      ## 依存関係（読み込み順番）が複雑にならない
+
+      scriptタグの読み込み順のような依存関係を解消できる。
+
+      ---
+
+      ## まとめ
+
+      webpackは静的なモジュールバンドラー。
+
+      gulpで使われているwebpack-streamの中身はwebpack。
+
+      webpack（モジュールバンドラー）がないと安全なJavaScript開発は不可能。
+
+      ---
+
+      ## 課題
+
+      src/js/modules配下に何かモジュールを追加してconsole.logで表示する
+
+      例：sub.js（引き算）のモジュールを追加して引き算の結果を表示する
+
+      ---
+      class: center, middle
+
+      # END
+
+
+    </textarea>
+    <script src="js/remark.min.js" type="text/javascript">
+    </script>
+    <script type="text/javascript">
+      var slideshow = remark.create({
+        navigation: {
+          scroll: false
+        }
+      });
+    </script>
+  </body>
+</html>
